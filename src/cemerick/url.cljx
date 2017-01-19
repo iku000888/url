@@ -27,16 +27,18 @@
   (some-> string str (js/decodeURIComponent)))
 
 (defn map->query
-  [m]
-  (some->> (seq m)
-    sort                     ; sorting makes testing a lot easier :-)
-    (map (fn [[k v]]
-           [(url-encode (name k))
-            "="
-            (url-encode (str v))]))
-    (interpose "&")
-    flatten
-    (apply str)))
+  [{:as m :keys [override-encoder-fn]}]
+  (let [encoder-fn (or override-encoder-fn url-encode)
+        m (dissoc m :override-encoder-fn)]
+    (some->> (seq m)
+             sort                     ; sorting makes testing a lot easier :-)
+             (map (fn [[k v]]
+                    [(encoder-fn (name k))
+                     "="
+                     (encoder-fn (str v))]))
+             (interpose "&")
+             flatten
+             (apply str))))
 
 (defn split-param [param]
   (->
