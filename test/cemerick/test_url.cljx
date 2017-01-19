@@ -13,7 +13,8 @@
        "a=1&b=2&c=3" {:a 1 :b 2 :c 3}
        "a=1&b=2&c=3" {:a "1"  :b "2" :c "3"}
        "a=1&b=2" {"a" "1" "b" "2"}
-       "a=" {"a" ""}))
+       "a=" {"a" ""}
+       "overridden=overridden" {:foo "bar" :override-encoder-fn (constantly "overridden")}))
 
 (deftest url-roundtripping
   (let [aurl (url "https://username:password@some.host.com/database?query=string")]
