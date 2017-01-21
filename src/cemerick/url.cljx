@@ -5,14 +5,17 @@
             [clojure.string :as string]
             #+cljs [goog.Uri :as uri]))
 
+(defmulti url-encode
+  (fn ([_ encoding] encoding)))
+
 #+clj
-(defn url-encode
-  [string]
+(defmethod url-encode :default
+  [string _]
   (some-> string str (URLEncoder/encode "UTF-8") (.replace "+" "%20")))
 
 #+cljs
-(defn url-encode
-  [string]
+(defmethod url-encode :default
+  [string _]
   (some-> string str (js/encodeURIComponent) (.replace "+" "%20")))
 
 #+clj
@@ -27,18 +30,18 @@
   (some-> string str (js/decodeURIComponent)))
 
 (defn map->query
-  [{:as m :keys [override-encoder-fn]}]
-  (let [encoder-fn (or override-encoder-fn url-encode)
-        m (dissoc m :override-encoder-fn)]
-    (some->> (seq m)
-             sort                     ; sorting makes testing a lot easier :-)
-             (map (fn [[k v]]
-                    [(encoder-fn (name k))
-                     "="
-                     (encoder-fn (str v))]))
-             (interpose "&")
-             flatten
-             (apply str))))
+  ([m]
+   (map->query m nil))
+  ([m encoding]
+   (some->> (seq m)
+            sort; sorting makes testing a lot easier :-)
+            (map (fn [[k v]]
+                   [(url-encode (name k) encoding)
+                    "="
+                    (url-encode (str v) encoding)]))
+            (interpose "&")
+            flatten
+            (apply str))))
 
 (defn split-param [param]
   (->

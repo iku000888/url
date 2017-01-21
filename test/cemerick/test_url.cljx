@@ -13,8 +13,15 @@
        "a=1&b=2&c=3" {:a 1 :b 2 :c 3}
        "a=1&b=2&c=3" {:a "1"  :b "2" :c "3"}
        "a=1&b=2" {"a" "1" "b" "2"}
-       "a=" {"a" ""}
-       "overridden=overridden" {:foo "bar" :override-encoder-fn (constantly "overridden")}))
+       "a=" {"a" ""}))
+
+(defmethod url-encode :append-foobar
+  [string _]
+  (str string "foobar"))
+
+(deftest test-map-to-query-str-extention
+  (is (= "afoobar=custom-encodingfoobar"
+      (map->query {:a "custom-encoding"} :append-foobar))))
 
 (deftest url-roundtripping
   (let [aurl (url "https://username:password@some.host.com/database?query=string")]
